@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PinPoint</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    PinPoint
+  </div>
+
+  <div class="header-right">
+    <!-- Country search -->
+    <div class="search-wrap" id="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="country-search" id="country-search"
+             placeholder="Search country…" autocomplete="off" />
+      <div class="search-results" id="search-results"></div>
+    </div>
+
+    <!-- Colour legend -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#e8ff47;box-shadow:0 0 6px #e8ff47"></div>Pin
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#ff6b35;box-shadow:0 0 6px #ff6b35"></div>Selected
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#4af0c4;box-shadow:0 0 6px #4af0c4"></div>Nearest
+      </div>
+    </div>
+
+    <!-- Pin counter -->
+    <div class="pin-count">Pins: <span id="pin-count">0</span></div>
+
+    <!-- Dark / light toggle -->
+    <div class="theme-toggle-wrap">
+      <span class="theme-icon" id="theme-icon">🌙</span>
+      <button class="theme-toggle" id="theme-toggle"
+              onclick="toggleTheme()" title="Toggle light/dark mode"></button>
+    </div>
+
+    <button class="btn-clear" onclick="clearAll()">Clear All</button>
+  </div>
+</header>
+
+
+<!-- ══ MAIN LAYOUT ═════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <div class="sidebar">
+
+    <div class="sidebar-header">
+      <div class="sidebar-title">Location Details</div>
+      <div class="sidebar-sub" id="sidebar-sub">Click a pin to inspect</div>
+    </div>
+
+    <!-- Selected-pin info card -->
+    <div class="info-card" id="info-card">
+      <div class="info-label">Selected Pin</div>
+      <div class="info-empty">Click any pin on the map to see distances to all others.</div>
+    </div>
+
+    <!-- Hint shown when a pin is active -->
+    <div class="deselect-hint" id="deselect-hint">🔁 Click pin again to deselect</div>
+
+    <!-- Pin list -->
+    <div class="pin-list-wrap">
+      <div class="pin-list-label">
+        <span>All Pins</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="pin-list-sort-badge" id="sort-badge">↑ by distance</span>
+          <div class="list-mode-toggle" id="list-mode-toggle">
+            <button class="list-mode-btn active" id="btn-mode-custom"
+                    onclick="setListMode('custom')"
+                    title="Custom order with drag & groups">Custom</button>
+            <button class="list-mode-btn" id="btn-mode-distance"
+                    onclick="setListMode('distance')"
+                    title="Sort by distance from selected pin">Distance</button>
+          </div>
+        </div>
+      </div>
+      <div id="pin-list"></div>
+      <button class="btn-add-group" id="btn-add-group"
+              onclick="addGroup()" style="display:none">＋ New Group</button>
+    </div>
+
+    <!-- Bottom action buttons -->
+    <div class="sidebar-actions">
+      <div class="sidebar-actions-label">Actions</div>
+      <button class="btn-sidebar-action primary"   onclick="openAddPin()">＋ Add Pin</button>
+      <button class="btn-sidebar-action secondary" onclick="openGoto()">⌖ Go to Coordinates</button>
+      <div class="sidebar-actions-divider"></div>
+      <div class="sidebar-actions-row">
+        <button class="btn-sidebar-action export" onclick="exportPins()">⬇ Export</button>
+        <button class="btn-sidebar-action export" onclick="importPins()">⬆ Import</button>
+      </div>
+    </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="import-file-input" accept=".json"
+           style="display:none" onchange="handleImportFile(event)" />
+
+  </div>
+
+  <!-- ── Map area ─────────────────────────────────────────── -->
+  <div style="position:relative;flex:1;display:flex;">
+    <div id="map"></div>
+
+    <!-- Ghost-pin cursor (follows mouse in drop mode) -->
+    <div id="ghost-pin">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="34" viewBox="0 0 28 36">
+        <path id="ghost-pin-path" d="M14 2C8.48 2 4 6.48 4 12c0 7.5 10 22 10 22S24 19.5 24 12c0-5.52-4.48-10-10-10z"
+              fill="#e8ff47" opacity="0.93"/>
+        <circle cx="14" cy="12" r="4.5" fill="#0a0c10" opacity="0.6"/>
+      </svg>
+    </div>
+
+    <!-- Bottom-centre status hint -->
+    <div class="map-hint" id="map-hint">Click anywhere on the map to drop a pin</div>
+
+    <!-- Water warning toast -->
+    <div class="water-toast" id="water-toast">🌊 Can't place a pin in the water</div>
+
+    <!-- Undo-delete toasts (dynamically created per deletion) -->
+    <div id="undo-toast-stack"></div>
+    <!-- Export/import toast -->
+    <div class="export-toast" id="export-toast"></div>
+  </div>
+</div>
+
+
+<!-- ══ ADD / EDIT PIN MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">New <span>Pin</span></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="modal-name"
+             placeholder="e.g. Eiffel Tower, Home…" maxlength="60" />
+    </div>
+
+    <div class="field">
+      <label>Description &nbsp;
+        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(optional)</span>
+      </label>
+      <textarea id="modal-desc"
+                placeholder="Add notes, memories, or details about this place…"
+                maxlength="400"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Search by place name</label>
+      <div style="position:relative;display:flex;gap:8px;">
+        <input type="text" id="modal-place-search"
+               placeholder="e.g. Paris, Mount Everest, Big Ben…" style="flex:1" />
+        <button type="button" id="modal-place-btn" onclick="searchPlaceForPin()"
+                style="background:var(--accent3);color:#0a0c10;border:none;border-radius:10px;
+                       padding:0 14px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;
+                       cursor:pointer;white-space:nowrap;transition:all 0.15s;flex-shrink:0;">
+          Search
+        </button>
+      </div>
+      <div id="place-search-hint" class="coords-hint">Search fills in coordinates automatically.</div>
+    </div>
+
+    <div class="or-divider"><span>or enter coordinates manually</span></div>
+
+    <div class="field">
+      <label>Coordinates
+        <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(editable)</span>
+      </label>
+      <input type="text" class="field-coords-box" id="modal-coords"
+             placeholder="lat, lng  e.g. 48.8566, 2.3522" />
+      <div class="coords-hint" id="coords-hint">You can type coordinates here to reposition the pin.</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" id="modal-save-btn" onclick="saveModal()">Drop Pin</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ GO TO COORDINATES MODAL ═════════════════════════════ -->
+<div class="modal-overlay" id="goto-overlay">
+  <div class="goto-modal">
+    <div class="modal-header">
+      <div class="modal-title">Go to <span>Coordinates</span></div>
+      <button class="modal-close" onclick="closeGoto()">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5">
+      Enter coordinates to fly to that location. You can then drop a pin or just explore.
+    </p>
+    <div class="goto-row">
+      <div class="field">
+        <label>Latitude</label>
+        <input type="text" class="field-coords-box" id="goto-lat" placeholder="-90 to 90" />
+      </div>
+      <div class="field">
+        <label>Longitude</label>
+        <input type="text" class="field-coords-box" id="goto-lng" placeholder="-180 to 180" />
+      </div>
+    </div>
+    <div class="goto-err" id="goto-err"></div>
+    <div style="margin-top:18px;display:flex;gap:10px;">
+      <button class="btn-secondary" onclick="closeGoto()">Cancel</button>
+      <button class="btn-secondary"
+              style="color:var(--accent3);border-color:rgba(74,240,196,0.4)"
+              onclick="confirmGoto(false)">Just Fly</button>
+      <button class="btn-primary" onclick="confirmGoto(true)">Fly &amp; Drop Pin</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SCRIPTS ══════════════════════════════════════════════
+     Load order matters — state must come first, then utilities,
+     then modules that depend on them, then the bootstrap call.
+     ════════════════════════════════════════════════════════ -->
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- 1. Shared state variables (no dependencies) -->
+<script src="js/state.js"></script>
+
+<!-- 2. Pure utility functions (depends on: state for pins/groups) -->
+<script src="js/utils.js"></script>
+
+<!-- 3. localStorage read/write (depends on: state, utils, pins.addPin) -->
+<script src="js/storage.js"></script>
+
+<!-- 4. Map init, theme, icons, ghost pin, land check (depends on: state, utils) -->
+<script src="js/map.js"></script>
+
+<!-- 5. Distance lines & collision-aware badges (depends on: state, utils, map) -->
+<script src="js/distances.js"></script>
+
+<!-- 6. Pin lifecycle: add, select, delete, undo, info card (depends on: all above + list) -->
+<script src="js/pins.js"></script>
+
+<!-- 7. Sidebar list, groups, drag & drop (depends on: state, utils, pins) -->
+<script src="js/list.js"></script>
+
+<!-- 8. All modal dialogs (depends on: state, utils, map, pins, list) -->
+<script src="js/modal.js"></script>
+
+<!-- 9. Country search & border highlight (depends on: state, map) -->
+<script src="js/search.js"></script>
+
+<!-- 10. Export / import pins to JSON -->
+<script src="js/exportimport.js"></script>
+
+<!-- 11. Bootstrap: restore theme, load saved pins, init search -->
+<script>
+  const savedTheme = localStorage.getItem('pinpoint_theme');
+  if (savedTheme === 'light') toggleTheme();
+  updateGhostPinColor();
+  loadPins();
+  renderPinList();
+  initCountrySearch();
+</script>
+
+</body>
+</html>
