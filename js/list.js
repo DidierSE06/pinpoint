@@ -37,6 +37,41 @@ function renderPinList() {
     return;
   }
 
+  // If a search query is active, show flat filtered results regardless of mode
+  if (pinSearchQuery) {
+    const matches = pins.filter(p => p.name.toLowerCase().includes(pinSearchQuery));
+    if (!matches.length) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>No pins match<br>"${esc(pinSearchQuery)}"</p>
+      </div>`;
+      return;
+    }
+    el.innerHTML = matches.map(p => {
+      const isSel = selectedPinIds.has(p.id);
+      const isClo = p.id === closestPinId;
+      const isHidden = p.hidden || false;
+      const re    = new RegExp(`(${pinSearchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      const highlighted = esc(p.name).replace(re, '<mark>$1</mark>');
+      return `<div class="pin-item ${isSel ? 'selected' : ''} ${isClo && !isSel ? 'closest-highlight' : ''} ${isHidden ? 'pin-hidden' : ''}"
+                   onclick="handlePinRowClick(event,'${p.id}')">
+        <div class="pin-dot"></div>
+        <div class="pin-info">
+          <div class="pin-name" title="${esc(p.name)}">${highlighted}</div>
+          <div class="pin-coords">${p.lat.toFixed(3)}, ${p.lng.toFixed(3)}</div>
+        </div>
+        <div class="pin-actions">
+          <button class="pin-btn visibility ${isHidden ? 'hidden-on' : ''}"
+            onclick="event.stopPropagation();togglePinVisibility('${p.id}')"
+            title="${isHidden ? 'Show pin' : 'Hide pin'}">${isHidden ? '👁‍🗨' : '👁'}</button>
+          <button class="pin-btn edit" onclick="event.stopPropagation();openEdit('${p.id}')" title="Edit">✎</button>
+          <button class="pin-btn del"  onclick="event.stopPropagation();removePin('${p.id}')" title="Delete">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+    return;
+  }
+
   // When a pin is selected, or the user explicitly picked 'distance' mode,
   // render a flat distance-sorted list instead of the drag/group view.
   if (listMode === 'distance' || selectedPinIds.size > 0) {
@@ -78,7 +113,7 @@ function renderDistanceList(el) {
     const distText   = (primaryId && !isSel && distMap[p.id] !== undefined) ? fmt(distMap[p.id]) : '';
     const rankText   = (primaryId && !isSel && idx >= selCount) ? `#${idx - selCount + 1}` : '';
 
-    return `<div class="pin-item ${isSel ? 'selected' : ''} ${isClo && !isSel ? 'closest-highlight' : ''}"
+    return `<div class="pin-item ${isSel ? 'selected' : ''} ${isClo && !isSel ? 'closest-highlight' : ''} ${p.hidden ? 'pin-hidden' : ''}"
         onclick="handlePinRowClick(event,'${p.id}')">
       <div class="pin-dot"></div>
       <div class="pin-info">
@@ -88,6 +123,9 @@ function renderDistanceList(el) {
       <span class="pin-rank ${rankText ? 'visible' : ''}">${rankText}</span>
       <span class="pin-dist-tag ${distText ? 'visible' : ''}">${distText}</span>
       <div class="pin-actions">
+        <button class="pin-btn visibility ${p.hidden ? 'hidden-on' : ''}"
+          onclick="event.stopPropagation();togglePinVisibility('${p.id}')"
+          title="${p.hidden ? 'Show pin' : 'Hide pin'}">${p.hidden ? '👁‍🗨' : '👁'}</button>
         <button class="pin-btn edit" onclick="event.stopPropagation();openEdit('${p.id}')" title="Edit">✎</button>
         <button class="pin-btn del"  onclick="event.stopPropagation();removePin('${p.id}')" title="Delete">✕</button>
       </div>
@@ -404,4 +442,43 @@ function onDropGroup(e, gId) {
   if (!g.pinIds.includes(dragSrcId)) g.pinIds.push(dragSrcId);
   savePins();
   renderPinList();
+}
+
+
+/* ── Pin search / filter ─────────────────────────────────── */
+
+let pinSearchQuery = '';
+
+/** Filter the visible pin list by name. Called on every keystroke. */
+function filterPinList(query) {
+  pinSearchQuery = query.trim().toLowerCase();
+  const clearBtn = document.getElementById('pin-search-clear');
+  if (clearBtn) clearBtn.style.display = pinSearchQuery ? '' : 'none';
+  renderPinList();
+}
+
+/** Clear the search input and restore the full list. */
+function clearPinSearch() {
+  const input = document.getElementById('pin-search');
+  if (input) input.value = '';
+  filterPinList('');
+}
+
+
+/* ── Mobile sidebar ──────────────────────────────────────── */
+
+function toggleMobileSidebar() {
+  const sidebar  = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('mobile-backdrop');
+  const isOpen   = sidebar.classList.toggle('mobile-open');
+  backdrop.classList.toggle('visible', isOpen);
+  document.body.classList.toggle('sidebar-open', isOpen);
+}
+
+function closeMobileSidebar() {
+  const sidebar  = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('mobile-backdrop');
+  sidebar.classList.remove('mobile-open');
+  backdrop.classList.remove('visible');
+  document.body.classList.remove('sidebar-open');
 }

@@ -204,9 +204,8 @@ function showWaterToast() {
 /* ── Map click — the main entry point for dropping pins ──── */
 
 map.on('click', async e => {
-  // Deselect any active pins first, but don't bail out —
-  // continue to drop a new pin so the user doesn't lose a click.
-  if (selectedPinIds.size > 0) deselectAll();
+  // If a pin is selected, this click just deselects — don't also drop a new pin.
+  if (selectedPinIds.size > 0) { deselectAll(); return; }
 
   // Hide ghost while we do the async land check
   setGhostVisible(false);

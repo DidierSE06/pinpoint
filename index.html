@@ -26,6 +26,9 @@
   </div>
 
   <div class="header-right">
+    <!-- Mobile sidebar toggle -->
+    <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle"
+            onclick="toggleMobileSidebar()" title="Toggle sidebar">☰</button>
     <!-- Country search -->
     <div class="search-wrap" id="search-wrap">
       <span class="search-icon">🔍</span>
@@ -62,6 +65,9 @@
 </header>
 
 
+<!-- Mobile sidebar backdrop -->
+<div class="mobile-backdrop" id="mobile-backdrop" onclick="toggleMobileSidebar()"></div>
+
 <!-- ══ MAIN LAYOUT ═════════════════════════════════════════ -->
 <div class="main">
 
@@ -71,6 +77,7 @@
     <div class="sidebar-header">
       <div class="sidebar-title">Location Details</div>
       <div class="sidebar-sub" id="sidebar-sub">Click a pin to inspect</div>
+      <button class="sidebar-mobile-close" onclick="closeMobileSidebar()" title="Close">✕</button>
     </div>
 
     <!-- Selected-pin info card -->
@@ -81,6 +88,16 @@
 
     <!-- Hint shown when a pin is active -->
     <div class="deselect-hint" id="deselect-hint">🔁 Click pin again to deselect</div>
+
+    <!-- Pin search -->
+    <div class="pin-search-wrap">
+      <span class="pin-search-icon">🔍</span>
+      <input type="text" id="pin-search" class="pin-search-input"
+             placeholder="Search pins…" autocomplete="off"
+             oninput="filterPinList(this.value)" />
+      <button class="pin-search-clear" id="pin-search-clear"
+              onclick="clearPinSearch()" title="Clear search">✕</button>
+    </div>
 
     <!-- Pin list -->
     <div class="pin-list-wrap">
@@ -122,7 +139,7 @@
   </div>
 
   <!-- ── Map area ─────────────────────────────────────────── -->
-  <div style="position:relative;flex:1;display:flex;">
+  <div class="map-wrap">
     <div id="map"></div>
 
     <!-- Ghost-pin cursor (follows mouse in drop mode) -->

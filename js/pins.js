@@ -488,3 +488,13 @@ document.addEventListener('keydown', e => {
 document.getElementById('clearall-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('clearall-overlay')) closeClearAll();
 });
+
+/* Close mobile sidebar when user interacts with map selection */
+document.addEventListener('DOMContentLoaded', () => {
+  // Close sidebar on map click on mobile
+  if (typeof map !== 'undefined') {
+    map.on('click', () => {
+      if (window.innerWidth <= 768) closeMobileSidebar?.();
+    });
+  }
+});

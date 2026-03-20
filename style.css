@@ -99,7 +99,7 @@ header {
   50%      { box-shadow: 0 0 20px var(--accent); transform: scale(1.2); }
 }
 
-.header-right { display: flex; align-items: center; gap: 16px; }
+.header-right { display: flex; align-items: center; gap: 16px; min-width: 0; overflow: hidden; }
 
 /* Colour legend dots (Pin / Selected / Nearest) */
 .legend        { display: flex; gap: 14px; align-items: center; }
@@ -344,14 +344,30 @@ body.light .theme-toggle::after { transform: translateX(20px); }
 .pin-rank.visible { opacity: 1; }
 
 /* Edit / Delete buttons revealed on hover */
-.pin-actions { display: flex; gap: 2px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+.pin-actions { display: flex; gap: 3px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
 .pin-item:hover .pin-actions  { opacity: 1; }
 .pin-item:hover .pin-dist-tag { opacity: 0 !important; } /* hide badge while buttons show */
 
-.pin-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 3px 5px; border-radius: 4px; transition: all 0.15s; }
-.pin-btn:hover        { background: var(--surface2); }
-.pin-btn.edit:hover   { color: var(--accent); }
-.pin-btn.del:hover    { color: var(--accent2); }
+.pin-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+.pin-btn:hover           { background: var(--border); color: var(--text); }
+.pin-btn.edit:hover      { border-color: var(--accent); color: var(--accent); background: rgba(232,255,71,0.08); }
+.pin-btn.del:hover       { border-color: var(--accent2); color: var(--accent2); background: rgba(255,107,53,0.08); }
+.pin-btn.visibility:hover { border-color: var(--accent3); color: var(--accent3); background: rgba(74,240,196,0.08); }
+.pin-btn.ungroup:hover   { border-color: var(--muted); color: var(--text); }
+.pin-btn.hidden-on       { color: var(--accent3); border-color: var(--accent3); opacity: 0.7; }
+
+/* Hidden pin row — dimmed */
+.pin-item.pin-hidden { opacity: 0.45; }
 
 .empty-state      { text-align: center; padding: 30px 20px; color: var(--muted); }
 .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
@@ -474,6 +490,14 @@ body.light .theme-toggle::after { transform: translateX(20px); }
 
 
 /* ── 6. MAP & OVERLAYS ───────────────────────────────────── */
+.map-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+}
+
 #map {
   flex: 1;
   z-index: 1;
@@ -618,7 +642,7 @@ body.light .leaflet-container { background: #a8cce0 !important; }
   background: var(--surface2); color: var(--text);
   border: 1px solid var(--border); border-radius: 20px;
   padding: 6px 14px 6px 34px;
-  width: 190px; outline: none; transition: all 0.2s;
+  width: 190px; max-width: 100%; outline: none; transition: all 0.2s;
 }
 .country-search:focus       { border-color: var(--accent3); width: 220px; }
 .country-search::placeholder { color: var(--muted); }
@@ -982,3 +1006,224 @@ body.light .leaflet-container { background: #a8cce0 !important; }
 }
 .btn-danger:hover  { background: #ff2222; }
 .btn-danger:active { transform: scale(0.97); }
+
+
+/* ══════════════════════════════════════════════════════════
+   PIN SEARCH
+   ══════════════════════════════════════════════════════════ */
+.pin-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 16px 0; padding: 8px 12px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; flex-shrink: 0;
+}
+.pin-search-icon { font-size: 12px; opacity: 0.5; flex-shrink: 0; }
+.pin-search-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--text); min-width: 0;
+}
+.pin-search-input::placeholder { color: var(--muted); }
+.pin-search-clear {
+  background: none; border: none; color: var(--muted);
+  font-size: 11px; cursor: pointer; padding: 0; line-height: 1;
+  display: none; flex-shrink: 0; opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.pin-search-clear:hover { opacity: 1; }
+
+/* Highlight matched text in search results */
+.pin-item mark {
+  background: rgba(232,255,71,0.25); color: var(--accent);
+  border-radius: 2px; padding: 0 1px;
+}
+body.light .pin-item mark {
+  background: rgba(92,107,192,0.15); color: var(--accent);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE & TABLET
+   ══════════════════════════════════════════════════════════ */
+
+/* Sidebar close button — hidden on desktop */
+.sidebar-mobile-close {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--muted);
+  font-size: 11px; padding: 4px 8px; cursor: pointer;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.sidebar-mobile-close:hover { color: var(--text); border-color: var(--accent); }
+.sidebar-header { position: relative; }
+
+/* Mobile hamburger — hidden on desktop */
+.mobile-sidebar-toggle {
+  display: none;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: 15px;
+  width: 34px; height: 34px; flex-shrink: 0;
+  cursor: pointer; transition: all 0.15s;
+}
+.mobile-sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Backdrop — hidden on desktop */
+.mobile-backdrop {
+  display: none; position: fixed; inset: 0; z-index: 1099;
+  background: rgba(0,0,0,0.55);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.mobile-backdrop.visible { opacity: 1; pointer-events: all; }
+
+
+/* ── Tablet ≤900px ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .legend    { display: none; }
+  .pin-count { display: none; }
+  header     { padding: 0 18px; gap: 10px; }
+  .sidebar   { width: 260px; }
+}
+
+
+/* ── Mobile ≤768px ──────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Show hamburger, backdrop, close btn */
+  .mobile-sidebar-toggle { display: flex; align-items: center; justify-content: center; }
+  .mobile-backdrop       { display: block; }
+  .sidebar-mobile-close  { display: block; }
+
+  /* Header */
+  header          { padding: 0 12px; height: 52px; gap: 8px; }
+  .header-right   { gap: 8px; }
+  .logo           { font-size: 17px; gap: 8px; }
+  .search-wrap    { flex: 1; min-width: 0; }
+  .country-search { width: 100%; min-width: 0; }
+  .country-search:focus { width: 100%; }
+  .btn-clear      { white-space: nowrap; padding: 5px 10px; font-size: 12px; flex-shrink: 0; }
+  .theme-toggle-wrap .theme-icon { display: none; } /* hide moon/sun emoji, keep toggle */
+
+  /* Sidebar becomes a fixed drawer over the map */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 1100;
+    width: min(300px, 88vw);
+    transform: translateX(-110%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    overflow-y: auto;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 6px 0 40px rgba(0,0,0,0.5);
+  }
+
+  /* Sidebar header: title left, close btn right */
+  .sidebar-header {
+    display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between;
+    gap: 4px; padding: 14px 14px 10px;
+  }
+  .sidebar-header .sidebar-title { margin: 0; }
+  .sidebar-header .sidebar-sub   { width: 100%; }
+
+  /* Map area fills everything (sidebar is out of flow) */
+  .main            { position: relative; flex: 1; overflow: hidden; }
+  .map-wrap        { position: absolute; inset: 0; }
+  #map             { width: 100%; height: 100%; }
+
+  /* Map overlays */
+  .map-hint        { bottom: 60px; font-size: 11px; padding: 6px 14px; }
+  #undo-toast-stack { bottom: 76px; }
+
+  /* Modals: centered with margin */
+  .modal-overlay   { padding: 16px; }
+  .modal, .goto-modal {
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    width: 100%;
+  }
+}
+
+
+/* ── Phone ≤480px ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  header     { padding: 0 10px; height: 48px; }
+  .logo      { font-size: 15px; gap: 6px; }
+  .logo-dot  { width: 8px; height: 8px; }
+  .btn-clear { display: none; } /* replaced by clear-all in sidebar on small phones */
+
+  /* Modals slide up from bottom as native sheets */
+  .modal-overlay {
+    padding: 0; align-items: flex-end;
+  }
+  .modal, .goto-modal {
+    margin: 0; border-radius: 20px 20px 0 0;
+    max-height: 90dvh; width: 100%;
+  }
+  .modal { padding: 20px 16px 32px; }
+
+  /* Always show pin action buttons (no hover on touch) */
+  .pin-actions { opacity: 1; }
+}
+
+
+/* ── Pin map popup ───────────────────────────────────────── */
+
+/* Override Leaflet's default white popup bubble */
+.pin-popup .leaflet-popup-content-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  padding: 0;
+  overflow: hidden;
+}
+.pin-popup .leaflet-popup-tip-container { display: none; }
+.pin-popup .leaflet-popup-content       { margin: 0; width: auto !important; }
+
+.pin-popup-inner {
+  padding: 10px 12px 10px;
+  min-width: 150px;
+}
+.pin-popup-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.pin-popup-actions {
+  display: flex;
+  gap: 5px;
+}
+.pin-popup-btn {
+  flex: 1;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 7px;
+  padding: 5px 8px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.pin-popup-btn:hover       { color: var(--text); border-color: var(--muted); }
+.pin-popup-btn.edit:hover  { background: rgba(232,255,71,0.1); border-color: var(--accent);  color: var(--accent); }
+.pin-popup-btn.del:hover   { background: rgba(255,107,53,0.1); border-color: var(--accent2); color: var(--accent2); }
+.pin-popup-btn.hide:hover  { background: rgba(74,240,196,0.1); border-color: var(--accent3); color: var(--accent3); }
+.pin-popup-btn.hide.active { background: rgba(74,240,196,0.1); border-color: var(--accent3); color: var(--accent3); }
+
+/* Light mode */
+body.light .pin-popup .leaflet-popup-content-wrapper {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+body.light .pin-popup-btn.edit:hover { background: rgba(92,107,192,0.1); }
