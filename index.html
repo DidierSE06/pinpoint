@@ -275,6 +275,21 @@
 <!-- 10. Export / import pins to JSON -->
 <script src="js/exportimport.js"></script>
 
+<!-- ══ CLEAR ALL CONFIRM MODAL ══════════════════════════════ -->
+<div class="modal-overlay" id="clearall-overlay">
+  <div class="modal clearall-modal">
+    <div class="clearall-icon">🗑</div>
+    <div class="clearall-title">Clear All Pins?</div>
+    <div class="clearall-body" id="clearall-body">
+      This will permanently remove all your pins. This cannot be undone.
+    </div>
+    <div class="clearall-actions">
+      <button class="btn-secondary" onclick="closeClearAll()">Cancel</button>
+      <button class="btn-danger"    onclick="confirmClearAll()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
 <!-- 11. Bootstrap: restore theme, load saved pins, init search -->
 <script>
   const savedTheme = localStorage.getItem('pinpoint_theme');

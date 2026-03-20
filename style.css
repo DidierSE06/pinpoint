@@ -246,6 +246,21 @@ body.light .theme-toggle::after { transform: translateX(20px); }
 .btn-sidebar-action.secondary      { background: var(--surface2); color: var(--accent3); border: 1px solid rgba(74,240,196,0.3); }
 .btn-sidebar-action.secondary:hover { border-color: var(--accent3); background: rgba(74,240,196,0.07); }
 
+.sidebar-actions-divider { height: 1px; background: var(--border); margin: 2px 0; }
+.sidebar-actions-row     { display: flex; gap: 8px; }
+.sidebar-actions-row .btn-sidebar-action { flex: 1; }
+
+.btn-sidebar-action.export {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-sidebar-action.export:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(232,255,71,0.06);
+}
+
 
 /* ── 5. PIN LIST & GROUPS ────────────────────────────────── */
 .pin-list-wrap { flex: 1; overflow-y: auto; padding: 0 16px 16px; }
@@ -329,14 +344,14 @@ body.light .theme-toggle::after { transform: translateX(20px); }
 .pin-rank.visible { opacity: 1; }
 
 /* Edit / Delete buttons revealed on hover */
-.pin-actions { display: flex; gap: 2px; flex-shrink: 0; opacity: 1; transition: opacity 0.15s; }
+.pin-actions { display: flex; gap: 2px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+.pin-item:hover .pin-actions  { opacity: 1; }
 .pin-item:hover .pin-dist-tag { opacity: 0 !important; } /* hide badge while buttons show */
 
 .pin-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 3px 5px; border-radius: 4px; transition: all 0.15s; }
 .pin-btn:hover        { background: var(--surface2); }
-.pin-btn.edit:hover    { color: var(--accent); }
-.pin-btn.del:hover     { color: var(--accent2); }
-.pin-btn.ungroup:hover { color: var(--accent3); }
+.pin-btn.edit:hover   { color: var(--accent); }
+.pin-btn.del:hover    { color: var(--accent2); }
 
 .empty-state      { text-align: center; padding: 30px 20px; color: var(--muted); }
 .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
@@ -925,135 +940,45 @@ body.light .leaflet-container { background: #a8cce0 !important; }
 }
 .auth-skip-btn:hover { color: var(--text); }
 
-/* ── Export / Import buttons ─────────────────────────────── */
-.sidebar-actions-divider {
-  height: 1px;
-  background: rgba(255,255,255,0.06);
-  margin: 4px 0;
+/* ── Clear-all confirm modal ─────────────────────────────── */
+.clearall-modal {
+  text-align: center;
+  padding: 36px 32px 28px;
+  max-width: 360px;
 }
-.sidebar-actions-row {
-  display: flex;
-  gap: 8px;
+.clearall-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
 }
-.sidebar-actions-row .btn-sidebar-action {
-  flex: 1;
-}
-.btn-sidebar-action.export {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: var(--muted);
-  font-size: 12px;
-}
-.btn-sidebar-action.export:hover {
-  background: rgba(255,255,255,0.09);
+.clearall-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--text);
-  border-color: rgba(255,255,255,0.2);
+  margin-bottom: 10px;
 }
-.light .btn-sidebar-action.export {
-  background: rgba(0,0,0,0.03);
-  border-color: rgba(0,0,0,0.1);
-  color: #6b7280;
-}
-.light .btn-sidebar-action.export:hover {
-  background: rgba(0,0,0,0.07);
-  color: #1a1d27;
-}
-
-/* ── Export / Import toast ───────────────────────────────── */
-.export-toast {
-  position: absolute;
-  bottom: 56px;
-  left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: var(--card-bg, #13151c);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  padding: 8px 18px;
-  font-family: 'DM Mono', monospace;
-  font-size: 12px;
-  color: var(--text, #f0f2f8);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s, transform 0.2s;
-  z-index: 1100;
-}
-.export-toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.export-toast.ok  { border-color: rgba(74,240,196,0.4);  color: #4af0c4; }
-.export-toast.err { border-color: rgba(255,107,53,0.4);  color: #ff6b35; }
-
-/* ── Hidden pins ─────────────────────────────────────────── */
-.pin-item.pin-hidden {
-  opacity: 0.45;
-}
-.pin-item.pin-hidden .pin-name {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-.pin-btn.visibility {
-  opacity: 0.4;
-  font-size: 11px;
-}
-.pin-btn.visibility:hover,
-.pin-btn.visibility.hidden-on {
-  opacity: 1;
-  color: var(--accent3);
-}
-
-/* ── Marker popup ────────────────────────────────────────── */
-.pin-popup .leaflet-popup-content-wrapper {
-  background: var(--card-bg, #13151c);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
-  padding: 0;
-  backdrop-filter: blur(8px);
-}
-.pin-popup .leaflet-popup-content { margin: 0; min-width: 160px; }
-.pin-popup .leaflet-popup-tip-container { display: none; }
-
-.pin-popup-inner { padding: 10px 12px 8px; }
-
-.pin-popup-name {
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
+.clearall-body {
   font-size: 13px;
-  color: var(--text, #f0f2f8);
-  margin-bottom: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 26px;
 }
-.pin-popup-actions { display: flex; gap: 6px; }
-.pin-popup-btn {
-  flex: 1;
-  padding: 5px 0;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
+.clearall-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.btn-danger {
+  background: #ff4444;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 22px;
   font-family: 'Syne', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--muted, #6b7280);
   cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
 }
-.pin-popup-btn:hover        { background: rgba(255,255,255,0.1); color: var(--text, #f0f2f8); }
-.pin-popup-btn.hide:hover,
-.pin-popup-btn.hide.active  { color: var(--accent3, #4af0c4); border-color: rgba(74,240,196,0.3); }
-.pin-popup-btn.edit:hover   { color: var(--accent, #e8ff47);  border-color: rgba(232,255,71,0.3); }
-.pin-popup-btn.del:hover    { color: var(--accent2, #ff6b35); border-color: rgba(255,107,53,0.3); }
-
-.light .pin-popup .leaflet-popup-content-wrapper {
-  background: #ffffff;
-  border-color: rgba(0,0,0,0.08);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-}
-.light .pin-popup-name { color: #1a1d27; }
-.light .pin-popup-btn  { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #6b7280; }
-.light .pin-popup-btn:hover { background: rgba(0,0,0,0.08); color: #1a1d27; }
+.btn-danger:hover  { background: #ff2222; }
+.btn-danger:active { transform: scale(0.97); }

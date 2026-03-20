@@ -429,10 +429,22 @@ function togglePinVisibilityFromPopup(pinId) {
   }).openPopup();
 }
 
-/** Prompt the user and remove all pins if confirmed. */
+/** Open the custom confirm modal before clearing all pins. */
 function clearAll() {
   if (!pins.length) return;
-  if (!confirm(`Remove all ${pins.length} pin${pins.length > 1 ? 's' : ''}?`)) return;
+  // Update the body text with the pin count
+  document.getElementById('clearall-body').textContent =
+    `This will permanently remove all ${pins.length} pin${pins.length !== 1 ? 's' : ''}. This cannot be undone.`;
+  document.getElementById('clearall-overlay').classList.add('open');
+}
+
+function closeClearAll() {
+  document.getElementById('clearall-overlay').classList.remove('open');
+}
+
+/** Called when the user confirms the clear-all action. */
+function confirmClearAll() {
+  closeClearAll();
 
   hideUndoToast();
   deleteStack = [];
@@ -465,3 +477,14 @@ function clearAll() {
 
   renderPinList();
 }
+
+/* ── Clear-all modal keyboard + backdrop ─────────────────── */
+document.addEventListener('keydown', e => {
+  if (document.getElementById('clearall-overlay').classList.contains('open')) {
+    if (e.key === 'Escape') closeClearAll();
+    if (e.key === 'Enter')  confirmClearAll();
+  }
+});
+document.getElementById('clearall-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('clearall-overlay')) closeClearAll();
+});
